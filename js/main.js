@@ -1,4 +1,4 @@
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 function initNavigation() {
     const mainNavLinks = gsap.utils.toArray(".main-nav a");
@@ -290,13 +290,28 @@ function initPinSteps() {
         });
     });
 }
+function initScrollTo() {
+    // find all links and animate to the right position
+    gsap.utils.toArray(".fixed-nav a").forEach((link) => {
+        const target = link.getAttribute("href");
 
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            gsap.to(window, {
+                duration: 1.5,
+                scrollTo: target,
+                ease: "Power2.out",
+            });
+        });
+    });
+}
 function init() {
     initNavigation();
     initHeaderTilt();
     initPortfoliohover();
     initImageParallax();
     initPinSteps();
+    initScrollTo();
 }
 
 window.addEventListener("load", function () {
@@ -354,3 +369,25 @@ function handleWidthChange(mq) {
         initHoverReveal();
     }
 }
+
+let container = document.querySelector("#scroll-container");
+
+let height;
+
+function setHeight() {
+    height = container.clientHeight;
+    document.body.style.height = `${height}px`;
+}
+ScrollTrigger.addEventListener("refreshInit", setHeight);
+
+gsap.to(container, {
+    y: () => -(height - document.documentElement.clientHeight),
+    ease: "none",
+    scrollTrigger: {
+        trigger: document.body,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1,
+        invalidateOnRefresh: true,
+    },
+});
