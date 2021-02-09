@@ -178,11 +178,15 @@ function initHoverReveal() {
     });
 }
 const allLinks = gsap.utils.toArray(".portfolio__categories a");
-const pageBackground = document.querySelector(".fill-background");
 const largeImage = document.querySelector(".portfolio__image--l");
 const smallImage = document.querySelector(".portfolio__image--s");
 const lInside = document.querySelector(".portfolio__image--l .image_inside");
 const sInside = document.querySelector(".portfolio__image--s .image_inside");
+
+const updateBodyColor = (color) => {
+    // gsap.to('.fill-background', {backgroundColor: color, ease: 'none'})
+    document.documentElement.style.setProperty("--bcg-fill-color", color);
+};
 function initPortfoliohover() {
     allLinks.forEach((link) => {
         link.addEventListener("mouseenter", createPortfolioHover);
@@ -200,15 +204,18 @@ function createPortfolioHover(e) {
             .set(sInside, { backgroundImage: `url(${imagesmall}` })
             .to([largeImage, smallImage], { duration: 1, autoAlpha: 1 })
             .to(allSiblings, { color: "#fff", autoAlpha: 0.2 }, 0)
-            .to(e.target, { color: "#fff", autoAlpha: 1 }, 0)
-            .to(pageBackground, { backgroundColor: color, ease: "none" }, 0);
+            .to(e.target, { color: "#fff", autoAlpha: 1 }, 0);
+        updateBodyColor(color);
     }
     if (e.type === "mouseleave") {
         const tl = gsap.timeline();
 
-        tl.to([largeImage, smallImage], { autoAlpha: 0 })
-            .to(allLinks, { color: "#000000", autoAlpha: 1 }, 0)
-            .to(pageBackground, { color: "#ACbB7AB", ease: "none" }, 0);
+        tl.to([largeImage, smallImage], { autoAlpha: 0 }).to(
+            allLinks,
+            { color: "#000000", autoAlpha: 1 },
+            0
+        );
+        updateBodyColor("#acb7ae");
     }
 }
 
@@ -234,11 +241,62 @@ function createPortfolioMove(e) {
         ease: "Power3.out",
     });
 }
+function initImageParallax() {
+    gsap.utils.toArray(".with-parallax").forEach((section) => {
+        const image = section.querySelector("img");
+
+        gsap.to(image, {
+            yPercent: 20,
+            ease: "none",
+            scrollTrigger: {
+                trigger: section,
+                start: "top bottom",
+                scrub: 1,
+            },
+        });
+    });
+}
+function initPinSteps() {
+    ScrollTrigger.create({
+        trigger: ".fixed-nav",
+        start: "top center",
+        endTrigger: "#stage4",
+        end: "center center",
+        pin: true,
+        pinReparent: true,
+    });
+
+    const getVh = () => {
+        const vh = Math.max(
+            document.documentElement.clientHeight || 0,
+            window.innerHeight || 0
+        );
+        return vh;
+    };
+
+    gsap.utils.toArray(".stage").forEach((stage, index) => {
+        const navLinks = gsap.utils.toArray(".fixed-nav li");
+
+        ScrollTrigger.create({
+            trigger: stage,
+            start: "top center",
+            end: () => `+=${stage.clientHeight + getVh() / 10}`,
+            toggleClass: {
+                targets: navLinks[index],
+                className: "is-active",
+            },
+            onEnter: () => updateBodyColor(stage.dataset.color),
+            onEnterBack: () => updateBodyColor(stage.dataset.color),
+        });
+    });
+}
 
 function init() {
     initNavigation();
     initHeaderTilt();
     initPortfoliohover();
+    initImageParallax();
+    initPinSteps();
 }
 
 window.addEventListener("load", function () {
