@@ -301,9 +301,28 @@ header h1 span {
 }
 
 /* =Reveal Gallery */
+.rg__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000000;
+    pointer-events: none;
+}
+.rg__image img {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    object-fit: cover;
+    object-position: 50% 50%;
+    opacity: 0.8;
+}
+
+/* =Reveal Gallery */
 .reveal-gallery {
     width: 100%;
-    height: 100vh;
+    flex-direction: column;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -319,6 +338,7 @@ header h1 span {
     justify-content: center;
     position: relative;
     overflow: hidden;
+    min-height: 50vh;
 }
 .rg__text--heading h3 {
     font-size: 3.6vw;
@@ -335,18 +355,16 @@ header h1 span {
     font-weight: normal;
 }
 .rg__text {
-    max-width: 17vw;
     z-index: 1;
     position: relative;
 }
-.rg__text--copy,
-.stage__text p {
+.rg__text p {
+    margin: 0;
+}
+.rg__text--copy {
     font-weight: 300;
     letter-spacing: 0.03vw;
 }
-/* .rg__column.left {background-color:var(--bcg-lightgreen)}
-.rg__column.center {background-color: var(--bcg-lightbrown)}
-.rg__column.right {background-color:var(--bcg-lightblue)} */
 .rg__column::before {
     display: block;
     position: absolute;
@@ -363,25 +381,13 @@ header h1 span {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    /* transform: translateY(-100%);
-  transition: transform 0.45s var(--easing); */
 }
 .rg__image--mask {
     height: 100%;
     overflow: hidden;
-    /* transition: transform 0.45s var(--easing);
-  transform: translateY(100%); */
 }
 .rg__image img {
     opacity: 0.6;
-}
-.rg__column.is-active .rg__image,
-.rg__column.is-active .rg__image--mask {
-    /* transform: translateY(0); */
-}
-.rg__text--copy {
-    position: absolute;
-    overflow: hidden;
 }
 .rg__text--mask {
     overflow: hidden;
@@ -694,6 +700,21 @@ section {
 }
 
 @media only screen and (min-width: 768px) {
+    /* =Reveal Gallery */
+    .reveal-gallery {
+        flex-direction: row;
+        height: 100vh;
+    }
+    .rg__column {
+        min-height: auto;
+    }
+    .rg__text--copy {
+        position: absolute;
+        overflow: hidden;
+    }
+    .rg__text {
+        max-width: 17vw;
+    }
 }
 
 @media only screen and (min-width: 1140px) {

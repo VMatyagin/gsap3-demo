@@ -81,6 +81,102 @@ function moveImages(e) {
         ease: "Power4.out",
     });
 }
+
+function createHoverReveal(e) {
+    const {
+        imageBlock,
+        imageMask,
+        text,
+        textCopy,
+        textMask,
+        textP,
+        image,
+    } = e.target;
+
+    let t1 = gsap.timeline({
+        defaults: {
+            duration: 0.7,
+            ease: "Power4.out",
+        },
+    });
+
+    if (e.type === "mouseenter") {
+        t1.to([imageMask, imageBlock, textMask, textP], {
+            duration: 1,
+            yPercent: 0,
+        })
+            .to(
+                text,
+                {
+                    y: () => -textCopy.clientHeight / 2,
+                },
+                0
+            )
+            .to(
+                image,
+                {
+                    duration: 1.1,
+                    scale: 1,
+                },
+                0
+            );
+    }
+
+    if (e.type === "mouseleave") {
+        t1.to([imageMask, textP], {
+            yPercent: 100,
+        })
+            .to(
+                [imageBlock, textMask],
+                {
+                    yPercent: -101,
+                },
+                0
+            )
+            .to(
+                text,
+                {
+                    y: 0,
+                },
+                0
+            )
+            .to(
+                image,
+                {
+                    scale: 1.2,
+                },
+                0
+            );
+    }
+    return t1;
+}
+
+const sections = document.querySelectorAll(".rg__column");
+
+function initHoverReveal() {
+    sections.forEach((section) => {
+        section.imageBlock = section.querySelector(".rg__image");
+        section.image = section.querySelector(".rg__image img");
+        section.imageMask = section.querySelector(".rg__image--mask");
+        section.text = section.querySelector(".rg__text");
+        section.textCopy = section.querySelector(".rg__text--copy");
+        section.textMask = section.querySelector(".rg__text--mask");
+        section.textP = section.querySelector(".rg__text--copy p");
+
+        // reset initial position
+        gsap.set([section.imageBlock, section.textMask], {
+            yPercent: -101,
+        });
+        gsap.set([section.imageMask, section.textP], {
+            yPercent: 100,
+        });
+        gsap.set(section.image, { scale: 1.2 });
+
+        // animation setting
+        section.addEventListener("mouseenter", createHoverReveal);
+        section.addEventListener("mouseleave", createHoverReveal);
+    });
+}
 function init() {
     initNavigation();
     initHeaderTilt();
@@ -89,3 +185,55 @@ function init() {
 window.addEventListener("load", function () {
     init();
 });
+
+// define breakpoints
+const mq = window.matchMedia("(min-width: 768px)");
+
+// add change eventlisteners for these bp
+mq.addEventListener("change", handleWidthChange);
+
+// first page load
+handleWidthChange(mq);
+
+function resetProps(elements) {
+    gsap.killTweensOf("*");
+    if (elements.length) {
+        elements.forEach((el) => {
+            el && gsap.set(el, { clearProps: "all" });
+        });
+    }
+}
+
+function handleWidthChange(mq) {
+    // check if we are on the right breakpoint
+    if (!mq.matches) {
+        // width is less than 768px
+        // remove event listeners
+
+        sections.forEach((section) => {
+            section.removeEventListener("mouseenter", createHoverReveal);
+            section.removeEventListener("mouseleave", createHoverReveal);
+            const {
+                imageBlock,
+                imageMask,
+                text,
+                textCopy,
+                textMask,
+                textP,
+                image,
+            } = section;
+            resetProps([
+                imageBlock,
+                imageMask,
+                text,
+                textCopy,
+                textMask,
+                textP,
+                image,
+            ]);
+        });
+    } else {
+        // init hover animation
+        initHoverReveal();
+    }
+}
