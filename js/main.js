@@ -1,4 +1,4 @@
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+gsap.registerPlugin(ScrollTrigger);
 let bodyScrollBar;
 const select = (e) => document.querySelector(e);
 const selectAll = (e) => document.querySelectorAll(e);
@@ -190,11 +190,138 @@ const loaderInner = select(".loader .inner");
 const progressBar = select(".loader .progress");
 const loaderMask = select(".loader__mask");
 
+// images loaded
+function init() {
+    // show loader on page load
+    gsap.set(loader, { autoAlpha: 1 });
+
+    // scale loader down
+    gsap.set(loaderInner, { scaleY: 0.005, transformOrigin: "bottom" });
+
+    // make a tween that scales the loader
+    const progressTween = gsap.to(progressBar, {
+        paused: true,
+        scaleX: 0,
+        ease: "none",
+        transformOrigin: "right",
+    });
+
+    // setup variables
+    // https://codepen.io/desandro/pen/hlzaw
+    let loadedImageCount = 0,
+        imageCount;
+    const container = select("#main");
+
+    // setup Images loaded
+    const imgLoad = imagesLoaded(container);
+    imageCount = imgLoad.images.length;
+
+    // set the initial progress to 0
+    updateProgress(0);
+
+    // triggered after each item is loaded
+    imgLoad.on("progress", function () {
+        // increase the number of loaded images
+        loadedImageCount++;
+        // update progress
+        updateProgress(loadedImageCount);
+    });
+
+    // update the progress of our progressBar tween
+    function updateProgress(value) {
+        // console.log(value/imageCount)
+        // tween progress bar tween to the right value
+        gsap.to(progressTween, {
+            progress: value / imageCount,
+            duration: 0.3,
+            ease: "power1.out",
+        });
+    }
+
+    // do whatever you want when all images are loaded
+    imgLoad.on("done", function (instance) {
+        // we will simply init our loader animation onComplete
+        gsap.set(progressBar, {
+            autoAlpha: 0,
+            onComplete: initPageTransitions,
+        });
+    });
+}
+
+init();
+
+function pageTransitionIn({ container }) {
+    // console.log('pageTransitionIn');
+    // timeline to stretch the loader over the whole screen
+    const tl = gsap.timeline({
+        defaults: {
+            duration: 0.8,
+            ease: "power1.inOut",
+        },
+    });
+    tl.set(loaderInner, { autoAlpha: 0 })
+        .fromTo(loader, { yPercent: -100 }, { yPercent: 0 })
+        .fromTo(loaderMask, { yPercent: 80 }, { yPercent: 0 }, 0)
+        .to(container, { y: 150 }, 0);
+    return tl;
+}
+
+function pageTransitionOut({ container }) {
+    // console.log('pageTransitionOut');
+    // timeline to move loader away down
+    const tl = gsap.timeline({
+        defaults: {
+            duration: 0.8,
+            ease: "power1.inOut",
+        },
+        onComplete: () => initContent(),
+    });
+    tl.to(loader, { yPercent: 100 })
+        .to(loaderMask, { yPercent: -80 }, 0)
+        .from(container, { y: -150 }, 0);
+    return tl;
+}
+
+function initPageTransitions() {
+    // do something before the transition starts
+    barba.hooks.before(() => {
+        select("html").classList.add("is-transitioning");
+    });
+    // do something after the transition finishes
+    barba.hooks.after(() => {
+        select("html").classList.remove("is-transitioning");
+    });
+
+    // scroll to the top of the page
+    barba.hooks.enter(() => {
+        window.scrollTo(0, 0);
+    });
+
+    barba.init({
+        transitions: [
+            {
+                once() {
+                    // do something once on the initial page load
+                    initLoader();
+                },
+                async leave({ current }) {
+                    // animate loading screen in
+                    await pageTransitionIn(current);
+                },
+                enter({ next }) {
+                    // animate loading screen away
+                    pageTransitionOut(next);
+                },
+            },
+        ],
+    });
+}
+
 const updateBodyColor = (color) => {
     // gsap.to('.fill-background', {backgroundColor: color, ease: 'none'})
     document.documentElement.style.setProperty("--bcg-fill-color", color);
 };
-function initPortfoliohover() {
+function initPortfolioHover() {
     allLinks.forEach((link) => {
         link.addEventListener("mouseenter", createPortfolioHover);
         link.addEventListener("mouseleave", createPortfolioHover);
@@ -388,12 +515,11 @@ function initLoader() {
 
 function initContent() {
     select("body").classList.remove("is-loading");
-
     initSmoothScrollbar();
-
     initNavigation();
     initHeaderTilt();
-    initPortfoliohover();
+    initHoverReveal();
+    initPortfolioHover();
     initImageParallax();
     initPinSteps();
     initScrollTo();
